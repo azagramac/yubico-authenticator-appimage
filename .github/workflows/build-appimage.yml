@@ -19,37 +19,48 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y wget tar gzip libfuse2
+
     - name: 🌐 Download latest Yubico package
       run: |
         echo "⬇️ Downloading latest Yubico Authenticator from source..."
         wget -q --show-progress https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-latest-linux.tar.gz -O latest.tar.gz
         tar -tf latest.tar.gz | head -n5
         tar -zxvf latest.tar.gz
+
     - name: 🔧 Build AppImage
       run: |
         SCRIPT="$GITHUB_WORKSPACE/yubico-generator.sh"
         TAR="$GITHUB_WORKSPACE/latest.tar.gz"
+
         if [ ! -f "$SCRIPT" ]; then
           echo "❌ Script not found!"
           ls -l
           exit 1
         fi
+
         chmod +x "$SCRIPT"
         export HOME="$GITHUB_WORKSPACE"
+
         sh "$SCRIPT" "$TAR"
+
         ARCH=$(uname -m)
         echo "ARCH=$ARCH" >> $GITHUB_ENV
-        PACKAGE_FOLDER=$(find "$GITHUB_WORKSPACE" -maxdepth 1 -type d -name "yubico-authenticator-*" | head -n1)
-        VERSION=$(basename "$PACKAGE_FOLDER" | sed -E 's/yubico-authenticator-(.*)-linux/\1/')
+
+        # Obtener versión directamente del tarball (corrección)
+        VERSION=$(tar -tf "$TAR" | head -n1 | cut -d/ -f1 | sed -E 's/yubico-authenticator-(.*)-linux/\1/')
         echo "VERSION=$VERSION" >> $GITHUB_ENV
+
         APPIMAGE_NAME="yubikey-authenticator-${VERSION}-${ARCH}.AppImage"
+
         if [ ! -f "$GITHUB_WORKSPACE/$APPIMAGE_NAME" ]; then
           echo "❌ AppImage no generado!"
           ls -l "$GITHUB_WORKSPACE/YubicoAuthenticator.AppDir" || true
           exit 1
         fi
+
         echo "✅ AppImage ready: $APPIMAGE_NAME"
         ls -l "$GITHUB_WORKSPACE"
+
     - name: 🚀 Upload AppImage to GitHub Releases
       uses: softprops/action-gh-release@v2
       with:
@@ -58,4 +69,3 @@ jobs:
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
