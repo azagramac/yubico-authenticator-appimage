@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: 📥 Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: 📦 Install dependencies
       run: |
@@ -23,7 +23,7 @@ jobs:
     - name: 🌐 Download latest Yubico package
       run: |
         echo "⬇️ Downloading latest Yubico Authenticator from source..."
-        wget -q --show-progress https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-latest-linux.tar.gz -O latest.tar.gz
+        wget -q --show-progress https://developers.yubico.com/yubioath-flutter/Releases/yubico-authenticator-7.5.0-linux-x64.tar.gz -O latest.tar.gz
         tar -tf latest.tar.gz | head -n5
         tar -zxvf latest.tar.gz
 
@@ -62,7 +62,7 @@ jobs:
         ls -l "$GITHUB_WORKSPACE"
 
     - name: 🚀 Upload AppImage to GitHub Releases
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: ${{ env.VERSION }}
         files: ${{ github.workspace }}/yubikey-authenticator-${{ env.VERSION }}-${{ env.ARCH }}.AppImage
